@@ -39,7 +39,7 @@ byte mac[] = { 0x90 , 0xA2, 0xDA, 0x00, 0x00, 0x12 }; // Must be unique on local
 
 // ThingSpeak Settings
 char thingSpeakAddress[] = "api.thingspeak.com";
-String writeAPIKey = "U9Y0GYIEH1JVNMS8";
+String writeAPIKey = "INSERT YOUR OEN QPI KEY"; //<--------INSERT YOUR API KEY HERE
 const int updateThingSpeakInterval = 10 * 1000;      // Time interval in milliseconds to update ThingSpeak (number of seconds * 1000 = interval)
 
 // Variable Setup
