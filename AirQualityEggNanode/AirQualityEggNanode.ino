@@ -5,7 +5,6 @@
  Measures NO2 (ppb) , CO (ppm) , air quality (?), humidity (%), temperature (C).
 */
 
- 
 #include <aJSON.h>
 #include <SPI.h>         
 #include <Ethernet.h>
@@ -36,13 +35,11 @@ const int humiditySensorPin = A3;
 const int buttonPin = 7;
 
 
-
-//___________________________________JUST ADDED__________________________________________________________________
 byte mac[] = { 0x90 , 0xA2, 0xDA, 0x00, 0x00, 0x12 }; // Must be unique on local network
 
 // ThingSpeak Settings
 char thingSpeakAddress[] = "api.thingspeak.com";
-String writeAPIKey = "TYL0ZA5ED3BQBQIN";
+String writeAPIKey = "U9Y0GYIEH1JVNMS8";
 const int updateThingSpeakInterval = 10 * 1000;      // Time interval in milliseconds to update ThingSpeak (number of seconds * 1000 = interval)
 
 // Variable Setup
@@ -51,11 +48,9 @@ boolean lastConnected = false;
 int failedCounter = 0;
 
 EthernetClient client2;
-//______________________________________END______________________________________
 
 
 //sensor value vars
-//int currNo2, currCo, currQuality, currHumidity, currTemp, currButton = 0;
 int currNo2, currCo, currQuality,currButton = 0;
 float  currHumidity, currTemp = 0.0;
 boolean debug = true;
@@ -70,53 +65,15 @@ int greenLEDpin = 13;
 
 EthernetClient ethClient;
 
-
-
-
-
-
-
 PubSubClient client(server, 1883, callback, ethClient);
+
 
 void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void setup_MQTT() 
 {
-  //_________________________________JUST ADDED  ________________________________________________________________
   startEthernet();
-  //_________________________________END_________________________________________________________________________
-  
-  
-  
-  // EEPROM locations:
-  // Unique MAC address can be stored in EEPROM using 'setMACaddress' sketch, which sets the last 3 bytes of this address.
- // const int eepromMacFlag = 0; // 1 byte
-  //int eepromMacAddress = 1; // 3 bytes
-  // Default MAC address for the ethernet controller.
-  //static byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x00, 0x12  }; 
-
-  // Retrieve MAC address from EEPROM if present
-  //if (EEPROM.read(eepromMacFlag) == '#') {
-    //Serial.println("Retrieving MAC address from EEPROM");
-    //for (int i = 3; i < 6; i++)
-      //mac[i] = EEPROM.read(eepromMacAddress++);
-  //} 
-  //else {
-    //Serial.println("No MAC address stored in EEPROM");
-    //Serial.println("Using default MAC address");
-  //}  
-
-  // Publish the MAC address to serial port
-  //{
-    //const int outputStringLen = 25;
-    //static char outputString[outputStringLen];  // buffer used for constructing output strings
-
-    //snprintf(outputString, outputStringLen, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    //Serial.print("MAC Address: "); 
-    //Serial.println(outputString);
- // }
-
   // Use DHCP to determine my IP address
   Serial.println("DHCP...");
   while (Ethernet.begin(mac) == 0) {
@@ -135,35 +92,29 @@ void setup_MQTT()
 
 
 
-
-
-
-
 void setup () 
 {
   Serial.begin(9600);
-//____________________________JUST ADDED___________________________________________________________
   startEthernet();
-//_____________________________END_________________________________________________________________
   setup_MQTT();
   pinMode(resetterPin, OUTPUT);  
-  digitalWrite(resetterPin, HIGH); //this is a hack! --> ???
+  digitalWrite(resetterPin, HIGH); 
   pinMode(buttonPin, INPUT);  
   ledSetup();
-  Wire.begin(); 
-
-  
-  
+  Wire.begin();
 }   
+
+
+
 
 void loop ()
 {  
   if (!client.connected()) {
     client.connect("AQE000");
     client.publish("AQE/log","(Re)Connecting to MQTT");
-    
     return;
   }
+  
   client.loop(); 
   currTime = millis();
   nanodeUpdate(); //checking for received data
@@ -173,23 +124,18 @@ void loop ()
   if( !transmitTime() ){
     //if we are not transmitting
     if(currTime%2000 == 0){  //print the currTime every second
-      //JUST CHANGED !!!!!!
       //Serial.print("currTime: ");  
       //Serial.println(currTime/1000);  
-      
       readSensors(); //update sensor values every second
     }
   } //else we are transmitting!
 
-//__________________________________JUST ADDED______________________________
-  // Read value from Analog Input Pin 0
-  //String analogValue0 = String(analogRead(A0), DEC);
-  // Print Update Response to Serial Monitor
   
   if (client2.available())
   {
+   
     char c = client2.read();
-    Serial.print(c);
+    //Serial.print(c);
   }
 
   // Disconnect from ThingSpeak
@@ -197,31 +143,40 @@ void loop ()
   {
     //Serial.println("...disconnected");
     //Serial.println();
-    
     client2.stop();
   }
   
   // Update ThingSpeak
   if(!client2.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval))
   {
-     updateThingSpeak("field1="+ (String) currNo2 + "&field2="+ (String) currCo);
-     //updateThingSpeak("field2="+ (String) currQuality);
-     //Serial.println(currQuality);
+    
+   char stuffed[50] = "";
+   char Humidity[50] ="";
+   dtostrf(currHumidity, 1, 2, stuffed);
+   sprintf(Humidity, "%s", stuffed);
+   
+   char stuff[50]= "";
+   char Temperature[50] ="";
+   dtostrf(currTemp, 1, 2, stuff);
+   sprintf(Temperature, "%s", stuff);
+  
+   updateThingSpeak("field1="+ (String) currNo2 + "&field2="+ (String) currCo + "&field3="+ (String) currHumidity+ "&field4="+  (String)currTemp);
+   Serial.println("Graphed!");
     
   // Check if Arduino Ethernet needs to be restarted
   if (failedCounter > 3 ) {startEthernet();}
-  
   lastConnected = client2.connected();}
-
-//_____________________________________END____________________________________
 
 }
 
-//_________________________JUST ADDED________________________________________
+
 void updateThingSpeak(String tsData)
 {
+ 
   if (client2.connect(thingSpeakAddress, 80))
+ 
   {         
+    
     client2.print("POST /update HTTP/1.1\n");
     client2.print("Host: api.thingspeak.com\n");
     client2.print("Connection: close\n");
@@ -230,31 +185,28 @@ void updateThingSpeak(String tsData)
     client2.print("Content-Length: ");
     client2.print(tsData.length());
     client2.print("\n\n");
-
     client2.print(tsData);
-    
+   
     lastConnectionTime = millis();
+    
     
     if (client2.connected())
     {
       //Serial.println("Connecting to ThingSpeak...");
       //Serial.println();
-      
       failedCounter = 0;
     }
     else
     {
       failedCounter++;
-  
       //Serial.println("Connection to ThingSpeak failed ("+String(failedCounter, DEC)+")");   
       //Serial.println();
     }
-    
   }
+  
   else
   {
     failedCounter++;
-    
     //Serial.println("Connection to ThingSpeak Failed ("+String(failedCounter, DEC)+")");   
     //Serial.println();
     
@@ -264,34 +216,26 @@ void updateThingSpeak(String tsData)
 
 
 
-
-
-
-
-
-
 void startEthernet()
 {
-  
   client2.stop();
-
-  Serial.println("Connecting Arduino to network...");
-  Serial.println();  
+  //Serial.println("Connecting Arduino to network...");
+  //Serial.println();  
 
   delay(1000);
   
-  // Connect to network amd obtain an IP address using DHCP
+   // Connect to network amd obtain an IP address using DHCP
   if (Ethernet.begin(mac) == 0)
   {
-    Serial.println("DHCP Failed, reset Arduino to try again");
-    Serial.println();
+    //Serial.println("DHCP Failed, reset Arduino to try again");
+    //Serial.println();
   }
   else
   {
-    Serial.println("Arduino connected to network using DHCP");
-    Serial.println();
+    //Serial.println("Arduino connected to network using DHCP");
+    //Serial.println();
   }
   
   delay(1000);
 }
-//___________________________END___________________________________________
+

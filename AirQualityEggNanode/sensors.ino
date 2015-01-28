@@ -9,7 +9,7 @@ CS_MQ7 MQ7(4);  //sensor "tog" pin on 4
 
 void readSensors(){
   //sensors
-  Serial.println("reading sensors");
+  //Serial.println("reading sensors");
   currNo2 = getNo2();
   delay(sensorDebounceTime);
   currCo = getCO();
@@ -34,7 +34,6 @@ int getNo2(){
 }
 
 //--------- MQ-7 carbon monixide sensor ---------
-//breakout info: http://citizensensor.cc/make
 int getCO(){
   int thisReading = 11;
 
