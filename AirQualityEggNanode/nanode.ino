@@ -6,8 +6,7 @@ unsigned long timer = 10000;
 //for counting how long it's been since last successful connection:
 unsigned long lastResponseTime = 0;
 
-void nanodeUpdate()
-{
+void nanodeUpdate(){
   digitalWrite(resetterPin, HIGH);
 
   if (currTime - lastResponseTime > (10*60000)){ // we have not connected in 10 min

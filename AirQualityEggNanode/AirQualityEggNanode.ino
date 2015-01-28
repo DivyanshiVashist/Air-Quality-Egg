@@ -107,8 +107,7 @@ void setup ()
 
 
 
-void loop ()
-{  
+void loop (){  
   if (!client.connected()) {
     client.connect("AQE000");
     client.publish("AQE/log","(Re)Connecting to MQTT");
@@ -131,25 +130,20 @@ void loop ()
   } //else we are transmitting!
 
   
-  if (client2.available())
-  {
-   
+  if (client2.available()){
     char c = client2.read();
     //Serial.print(c);
   }
 
   // Disconnect from ThingSpeak
-  if (!client2.connected() && lastConnected)
-  {
+  if (!client2.connected() && lastConnected){
     //Serial.println("...disconnected");
     //Serial.println();
     client2.stop();
   }
   
   // Update ThingSpeak
-  if(!client2.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval))
-  {
-    
+  if(!client2.connected() && (millis() - lastConnectionTime > updateThingSpeakInterval)){
    char stuffed[50] = "";
    char Humidity[50] ="";
    dtostrf(currHumidity, 1, 2, stuffed);
@@ -165,7 +159,8 @@ void loop ()
     
   // Check if Arduino Ethernet needs to be restarted
   if (failedCounter > 3 ) {startEthernet();}
-  lastConnected = client2.connected();}
+  lastConnected = client2.connected();
+  }
 
 }
 
@@ -190,22 +185,19 @@ void updateThingSpeak(String tsData)
     lastConnectionTime = millis();
     
     
-    if (client2.connected())
-    {
+    if (client2.connected()){
       //Serial.println("Connecting to ThingSpeak...");
       //Serial.println();
       failedCounter = 0;
     }
-    else
-    {
+    else{
       failedCounter++;
       //Serial.println("Connection to ThingSpeak failed ("+String(failedCounter, DEC)+")");   
       //Serial.println();
     }
   }
   
-  else
-  {
+  else{
     failedCounter++;
     //Serial.println("Connection to ThingSpeak Failed ("+String(failedCounter, DEC)+")");   
     //Serial.println();
@@ -216,8 +208,7 @@ void updateThingSpeak(String tsData)
 
 
 
-void startEthernet()
-{
+void startEthernet(){
   client2.stop();
   //Serial.println("Connecting Arduino to network...");
   //Serial.println();  
